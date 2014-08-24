@@ -1,5 +1,5 @@
-application: stone-swallow
-version: 1
+application: sinpkmnms
+version: ss1
 runtime: go
 api_version: go1
 
