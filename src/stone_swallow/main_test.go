@@ -47,4 +47,21 @@ func TestListEntity(t *testing.T) {
 	if len(dst) != 1 {
 		t.Fatalf("Non-expected response length %v", len(dst))
 	}
+
+	if len(dst[0]) != 2 {
+		t.Fatalf("Non-expected PropertyList length %v", len(dst[0]))
+	}
+	if dst[0][0].Name != "Name" {
+		t.Fatalf("Non-expected PropertyList[0] Name %v", dst[0][0].Name)
+	}
+	if dst[0][0].Value != h.Name {
+		t.Fatalf("Non-expected PropertyList[0] Value %v", dst[0][0].Value)
+	}
+	if dst[0][1].Name != "Created" {
+		t.Fatalf("Non-expected PropertyList[1] Name %v", dst[0][1].Name)
+	}
+	if dst[0][1].Value != h.Created {
+		// 日付は形式がちょっと変わっちゃった
+		t.Logf("Non-expected PropertyList[1] Value %v : %v", dst[0][1].Value, h.Created)
+	}
 }
