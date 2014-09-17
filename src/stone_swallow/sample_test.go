@@ -8,6 +8,10 @@ import (
 	"net/http/httptest"
 )
 
+func TextEmpty(t *testing.T) {
+
+}
+
 func TestSave(t *testing.T) {
 	c, err := aetest.NewContext(nil)
 	if err != nil {
