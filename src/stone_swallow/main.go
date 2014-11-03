@@ -21,6 +21,8 @@ func handler(w http.ResponseWriter, r *http.Request) {
 		listEntity(w, r, c)
 	case "/sample":
 		putHoge(w, r, c)
+	case "/bigquery":
+		listBigQuery(w, r, c)
 	}
 }
 
