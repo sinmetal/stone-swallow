@@ -8,17 +8,24 @@ import (
 	"net/http/httptest"
 )
 
-func TextEmpty(t *testing.T) {
-
-}
-
-func TestSave(t *testing.T) {
+func TestFirst(t *testing.T) {
 	c, err := aetest.NewContext(nil)
 	if err != nil {
 		t.Fatal(err)
 	}
 	defer c.Close()
 
+	testSave(c, t)
+	testPutHoge(c, t)
+	testHoge(c, t)
+	testGetAllHoge(c, t)
+}
+
+func TextEmpty(t *testing.T) {
+
+}
+
+func testSave(c aetest.Context, t *testing.T) {
 	var h Hoge
 	h.Id = "gufu"
 	s, err := h.save(c)
@@ -31,13 +38,7 @@ func TestSave(t *testing.T) {
 	}
 }
 
-func TestPutHoge(t *testing.T) {
-	c, err := aetest.NewContext(nil)
-	if err != nil {
-		t.Fatal(err)
-	}
-	defer c.Close()
-
+func testPutHoge(c aetest.Context, t *testing.T) {
 	req, err := http.NewRequest("POST", "/sample", nil)
 	if err != nil {
 		t.Fatal(err)
@@ -51,16 +52,10 @@ func TestPutHoge(t *testing.T) {
 	}
 }
 
-func TestHoge(t *testing.T) {
-	c, err := aetest.NewContext(nil)
-	if err != nil {
-		t.Fatal(err)
-	}
-	defer c.Close()
-
+func testHoge(c aetest.Context, t *testing.T) {
 	var h Hoge
 	h.Id = "gufu"
-	_, err = h.save(c)
+	_, err := h.save(c)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -70,16 +65,10 @@ func TestHoge(t *testing.T) {
 	}
 }
 
-func TestGetAllHoge(t *testing.T) {
-	c, err := aetest.NewContext(nil)
-	if err != nil {
-		t.Fatal(err)
-	}
-	defer c.Close()
-
+func testGetAllHoge(c aetest.Context, t *testing.T) {
 	var h Hoge
 	h.Id = "gufu"
-	_, err = h.save(c)
+	_, err := h.save(c)
 	if err != nil {
 		t.Fatal(err)
 	}
