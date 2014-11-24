@@ -1,5 +1,7 @@
-application: sinpkmnms
-version: ss1
+application: cp300demo1
+module: goengine
+version: 1
+automatic_scaling:
 runtime: go
 api_version: go1
 
