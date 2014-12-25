@@ -1,5 +1,5 @@
-application: cp300demo1
-module: goengine
+application: stone-swallow
+module: default
 version: 1
 automatic_scaling:
 runtime: go
