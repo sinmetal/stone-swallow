@@ -14,4 +14,4 @@ deployment:
   appengine:
     branch: feature/id/1
     commands:
-      -  $HOME/go_appengine/appcfg.py --oauth2_refresh_token=$APPENGINE_TOKEN update .
+      -  $HOME/go_appengine/appcfg.py --oauth2_refresh_token=$APPENGINE_TOKEN update src/app.yaml
