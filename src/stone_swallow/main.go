@@ -4,9 +4,17 @@ import (
 	"appengine"
 	"appengine/datastore"
 	"encoding/json"
+	"fmt"
 	"log"
 	"net/http"
+	"runtime"
 )
+
+type runtimeEnv struct {
+	NumCPU       int
+	GOMAXPROCS   int
+	NumGoroutine int
+}
 
 func init() {
 	http.HandleFunc("/", handler)
@@ -21,8 +29,36 @@ func handler(w http.ResponseWriter, r *http.Request) {
 		listEntity(w, r, c)
 	case "/sample":
 		putHoge(w, r, c)
-	case "/bigquery":
-		listBigQuery(w, r, c)
+	case "/env":
+		listEnvironment(w, r, c)
+	}
+}
+
+func listEnvironment(w http.ResponseWriter, r *http.Request, c appengine.Context) {
+	fmt.Println(runtime.NumCPU())
+	fmt.Println(runtime.GOMAXPROCS(0))
+	fmt.Println(runtime.NumGoroutine())
+
+	re := &runtimeEnv{
+		NumCPU:       runtime.NumCPU(),
+		GOMAXPROCS:   runtime.GOMAXPROCS((0)),
+		NumGoroutine: runtime.NumGoroutine(),
+	}
+
+	json, err := json.Marshal(re)
+	if err != nil {
+		c.Errorf("handler error: %#v", err)
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(http.StatusOK)
+	_, err = w.Write(json)
+	if err != nil {
+		c.Errorf("write response error: %#v", err)
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
 	}
 }
 
