@@ -1,6 +1,6 @@
 application: stone-swallow
 module: default
-version: 1
+version: 20150202b
 automatic_scaling:
 runtime: go
 api_version: go1
