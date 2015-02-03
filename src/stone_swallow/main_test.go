@@ -7,6 +7,7 @@ import (
 	"net/http"
 	"net/http/httptest"
 	"testing"
+	"strings"
 )
 
 func TestListEntity(t *testing.T) {
@@ -63,5 +64,44 @@ func TestListEntity(t *testing.T) {
 	if dst[0][1].Value != h.Created {
 		// 日付は形式がちょっと変わっちゃった
 		t.Logf("Non-expected PropertyList[1] Value %v : %v", dst[0][1].Value, h.Created)
+	}
+}
+
+func TestGetTestCookie(t *testing.T) {
+	c, err := aetest.NewContext(nil)
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer c.Close()
+
+	req, err := http.NewRequest("GET", "/testcookie", nil)
+	if err != nil {
+		t.Fatal(err)
+	}
+	res := httptest.NewRecorder()
+
+	handleTestCookie(res, req, c)
+	if res.Code != http.StatusNotFound {
+		t.Fatalf("Non-expected status code : %v\n\tbody: %v", res.Code, res.Body)
+	}
+}
+
+func TestPostTestCookie(t *testing.T) {
+	c, err := aetest.NewContext(nil)
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer c.Close()
+
+	r := strings.NewReader(`{"Domain" : "hoge"}`)
+	req, err := http.NewRequest("POST", "/testcookie", r)
+	if err != nil {
+		t.Fatal(err)
+	}
+	res := httptest.NewRecorder()
+
+	handleTestCookie(res, req, c)
+	if res.Code != http.StatusOK {
+		t.Fatalf("Non-expected status code : %v\n\tbody: %v", res.Code, res.Body)
 	}
 }
