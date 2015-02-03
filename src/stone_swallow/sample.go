@@ -3,6 +3,7 @@ package stone_swallow
 import (
 	"appengine"
 	"appengine/datastore"
+	"bytes"
 	"encoding/json"
 	"net/http"
 	"time"
@@ -30,6 +31,13 @@ func (f *Hoge) save(c appengine.Context) (*Hoge, error) {
 	}
 	f.Id = k.StringID()
 	return f, nil
+}
+
+func postLog(w http.ResponseWriter, r *http.Request, c appengine.Context) {
+	bufbody := new(bytes.Buffer)
+	bufbody.ReadFrom(r.Body)
+	body := bufbody.String()
+	c.Infof(body)
 }
 
 func putHoge(w http.ResponseWriter, r *http.Request, c appengine.Context) {
