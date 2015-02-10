@@ -46,6 +46,8 @@ func handler(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "not found.", http.StatusNotFound)
 	case "/entity":
 		listEntity(w, r, c)
+	case "/kind":
+		allKind(w, r, c)
 	case "/sample":
 		putHoge(w, r, c)
 	case "/env":
@@ -55,7 +57,7 @@ func handler(w http.ResponseWriter, r *http.Request) {
 	case "/param":
 		getParam(w, r, c)
 	case "/testcookie":
-		handleTestCookie(w,r,c)
+		handleTestCookie(w, r, c)
 	case "/static":
 		writeStaticFile(w, r, c)
 	case "/":
@@ -91,6 +93,30 @@ func listEnvironment(w http.ResponseWriter, r *http.Request, c appengine.Context
 	}
 }
 
+func allKind(w http.ResponseWriter, r *http.Request, c appengine.Context) {
+	t := datastore.NewQuery("__kind__").KeysOnly().Run(c)
+	kinds := make([]string, 0)
+	for {
+		key, err := t.Next(nil)
+		if err == datastore.Done {
+			break // No further entities match the query.
+		}
+		if err != nil {
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+			return
+		}
+		kinds = append(kinds, key.StringID())
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(http.StatusOK)
+	err := json.NewEncoder(w).Encode(kinds)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+}
+
 func listEntity(w http.ResponseWriter, r *http.Request, c appengine.Context) {
 	kind := r.FormValue("kind")
 	log.Printf("kind=%s", kind)
@@ -104,18 +130,10 @@ func listEntity(w http.ResponseWriter, r *http.Request, c appengine.Context) {
 		return
 	}
 
-	json, err := json.Marshal(dst)
-	if err != nil {
-		c.Errorf("handler error: %#v", err)
-		http.Error(w, err.Error(), http.StatusInternalServerError)
-		return
-	}
-
 	w.Header().Set("Content-Type", "application/json")
-	w.WriteHeader(http.StatusCreated)
-	_, err = w.Write(json)
+	w.WriteHeader(http.StatusOK)
+	err = json.NewEncoder(w).Encode(dst)
 	if err != nil {
-		c.Errorf("write response error: %#v", err)
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
@@ -190,7 +208,7 @@ func postTestCookie(w http.ResponseWriter, r *http.Request, c appengine.Context)
 		return
 	}
 
-	cookie := http.Cookie{Name: "testdomain", Value:tc.Domain}
+	cookie := http.Cookie{Name: "testdomain", Value: tc.Domain}
 	http.SetCookie(w, &cookie)
 
 	w.WriteHeader(http.StatusOK)
