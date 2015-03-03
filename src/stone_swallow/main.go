@@ -8,6 +8,7 @@ import (
 	"log"
 	"net/http"
 	"runtime"
+	"strconv"
 	"strings"
 )
 
@@ -118,23 +119,39 @@ func allKind(w http.ResponseWriter, r *http.Request, c appengine.Context) {
 }
 
 type entity struct {
-	Key *datastore.Key
+	Key      *datastore.Key
 	KeyValue string
-	List datastore.PropertyList
+	List     datastore.PropertyList
 }
 
 func listEntity(w http.ResponseWriter, r *http.Request, c appengine.Context) {
 	kind := r.FormValue("kind")
 	log.Printf("kind=%s", kind)
 
-    order := r.FormValue("order")
-    log.Printf("order=%s", order)
+	order := r.FormValue("order")
+	log.Printf("order=%s", order)
+
+	limit := r.FormValue("limit")
+	log.Printf("limit=%s", limit)
+
+	q := datastore.NewQuery(kind)
+	if order != "" {
+		q = q.Order(order)
+	}
+	if limit != "" {
+		l, err := strconv.Atoi(limit)
+		if err != nil {
+			c.Errorf("handler error: %#v", err)
+			http.Error(w, err.Error(), http.StatusBadRequest)
+			return
+		}
+		if l != 0 {
+			log.Printf("set limit : %d", l)
+			q = q.Limit(l)
+		}
+	}
 
 	var dst []datastore.PropertyList
-	q := datastore.NewQuery(kind)
-    if order != "" {
-        q.Order(order)
-    }
 	keys, err := q.GetAll(c, &dst)
 	if err != nil {
 		c.Errorf("handler error: %#v", err)

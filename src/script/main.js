@@ -15,12 +15,19 @@
     }]);
 
     app.controller('EntityListController', ['$scope', '$resource', function ($scope, $resource) {
+        $scope.limit = 1000;
+
         $scope.search = function () {
             var order = "";
             if ($scope.order) {
                 order = $scope.order;
             }
-            var entity = $resource("/entity?kind=" + $scope.kind + "&order=" + order);
+
+            var limit = 0;
+            if ($scope.limit) {
+                limit = $scope.limit
+            }
+            var entity = $resource("/entity?kind=" + $scope.kind + "&order=" + order + "&limit=" + limit);
                 $scope.entities = entity.query(function () {
                     console.log("success entity query");
                     console.log($scope.entities);
