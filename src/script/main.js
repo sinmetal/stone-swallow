@@ -16,7 +16,11 @@
 
     app.controller('EntityListController', ['$scope', '$resource', function ($scope, $resource) {
         $scope.search = function () {
-            var entity = $resource("/entity?kind=" + $scope.kind);
+            var order = "";
+            if ($scope.order) {
+                order = $scope.order;
+            }
+            var entity = $resource("/entity?kind=" + $scope.kind + "&order=" + order);
                 $scope.entities = entity.query(function () {
                     console.log("success entity query");
                     console.log($scope.entities);

@@ -127,8 +127,14 @@ func listEntity(w http.ResponseWriter, r *http.Request, c appengine.Context) {
 	kind := r.FormValue("kind")
 	log.Printf("kind=%s", kind)
 
+    order := r.FormValue("order")
+    log.Printf("order=%s", order)
+
 	var dst []datastore.PropertyList
 	q := datastore.NewQuery(kind)
+    if order != "" {
+        q.Order(order)
+    }
 	keys, err := q.GetAll(c, &dst)
 	if err != nil {
 		c.Errorf("handler error: %#v", err)
