@@ -1,0 +1,22 @@
+<div>
+    Kind : <input type="text" id="kind" ng-model="kind"> <button ng-click="search()" class="btn btn-primary">Search</button>
+</div>
+
+<div>
+    <table class="table">
+        <thead>
+        <tr>
+            <th>No</th>
+            <th>Key</th>
+            <th>Property</th>
+        </tr>
+        </thead>
+        <tbody ng-repeat="e in entities">
+        <tr>
+            <td>{{$index + 1}}</td>
+            <td>{{e.KeyValue}}</td>
+            <td ng-repeat="l in e.List">{{l.Name}} = {{l.Value}}</td>
+        </tr>
+        </tbody>
+    </table>
+</div>

@@ -83,7 +83,7 @@ func listEnvironment(w http.ResponseWriter, r *http.Request, c appengine.Context
 		return
 	}
 
-	w.Header().Set("Content-Type", "application/json")
+	w.Header().Set("Content-Type", "application/json; charset=UTF-8")
 	w.WriteHeader(http.StatusOK)
 	_, err = w.Write(json)
 	if err != nil {
@@ -108,7 +108,7 @@ func allKind(w http.ResponseWriter, r *http.Request, c appengine.Context) {
 		kinds = append(kinds, key.StringID())
 	}
 
-	w.Header().Set("Content-Type", "application/json")
+	w.Header().Set("Content-Type", "application/json; charset=UTF-8")
 	w.WriteHeader(http.StatusOK)
 	err := json.NewEncoder(w).Encode(kinds)
 	if err != nil {
@@ -117,22 +117,35 @@ func allKind(w http.ResponseWriter, r *http.Request, c appengine.Context) {
 	}
 }
 
+type entity struct {
+	Key *datastore.Key
+	KeyValue string
+	List datastore.PropertyList
+}
+
 func listEntity(w http.ResponseWriter, r *http.Request, c appengine.Context) {
 	kind := r.FormValue("kind")
 	log.Printf("kind=%s", kind)
 
 	var dst []datastore.PropertyList
 	q := datastore.NewQuery(kind)
-	_, err := q.GetAll(c, &dst)
+	keys, err := q.GetAll(c, &dst)
 	if err != nil {
 		c.Errorf("handler error: %#v", err)
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
 
-	w.Header().Set("Content-Type", "application/json")
+	resp := make([]*entity, len(keys))
+	for idx, key := range keys {
+		resp[idx] = &entity{
+			key, fmt.Sprintf("%v", key), dst[idx],
+		}
+	}
+
+	w.Header().Set("Content-Type", "application/json; charset=UTF-8")
 	w.WriteHeader(http.StatusOK)
-	err = json.NewEncoder(w).Encode(dst)
+	err = json.NewEncoder(w).Encode(resp)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
