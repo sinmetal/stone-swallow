@@ -1,11 +1,14 @@
 package stone_swallow
 
 import (
-	"appengine"
-	"appengine/datastore"
+	"google.golang.org/appengine"
+	"google.golang.org/appengine/datastore"
+	"google.golang.org/appengine/log"
+
+	"golang.org/x/net/context"
+
 	"encoding/json"
 	"fmt"
-	"log"
 	"net/http"
 	"runtime"
 	"strconv"
@@ -66,7 +69,7 @@ func handler(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-func listEnvironment(w http.ResponseWriter, r *http.Request, c appengine.Context) {
+func listEnvironment(w http.ResponseWriter, r *http.Request, c context.Context) {
 	fmt.Println(runtime.NumCPU())
 	fmt.Println(runtime.GOMAXPROCS(0))
 	fmt.Println(runtime.NumGoroutine())
@@ -79,7 +82,7 @@ func listEnvironment(w http.ResponseWriter, r *http.Request, c appengine.Context
 
 	json, err := json.Marshal(re)
 	if err != nil {
-		c.Errorf("handler error: %#v", err)
+		log.Errorf(c, "handler error: %#v", err)
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
@@ -88,13 +91,13 @@ func listEnvironment(w http.ResponseWriter, r *http.Request, c appengine.Context
 	w.WriteHeader(http.StatusOK)
 	_, err = w.Write(json)
 	if err != nil {
-		c.Errorf("write response error: %#v", err)
+		log.Errorf(c, "write response error: %#v", err)
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
 }
 
-func allKind(w http.ResponseWriter, r *http.Request, c appengine.Context) {
+func allKind(w http.ResponseWriter, r *http.Request, c context.Context) {
 	t := datastore.NewQuery("__kind__").KeysOnly().Run(c)
 	kinds := make([]string, 0)
 	for {
@@ -124,15 +127,15 @@ type entity struct {
 	List     datastore.PropertyList
 }
 
-func listEntity(w http.ResponseWriter, r *http.Request, c appengine.Context) {
+func listEntity(w http.ResponseWriter, r *http.Request, c context.Context) {
 	kind := r.FormValue("kind")
-	log.Printf("kind=%s", kind)
+	log.Infof(c, "kind=%s", kind)
 
 	order := r.FormValue("order")
-	log.Printf("order=%s", order)
+	log.Infof(c, "order=%s", order)
 
 	limit := r.FormValue("limit")
-	log.Printf("limit=%s", limit)
+	log.Infof(c, "limit=%s", limit)
 
 	q := datastore.NewQuery(kind)
 	if order != "" {
@@ -141,12 +144,12 @@ func listEntity(w http.ResponseWriter, r *http.Request, c appengine.Context) {
 	if limit != "" {
 		l, err := strconv.Atoi(limit)
 		if err != nil {
-			c.Errorf("handler error: %#v", err)
+			log.Errorf(c, "handler error: %#v", err)
 			http.Error(w, err.Error(), http.StatusBadRequest)
 			return
 		}
 		if l != 0 {
-			log.Printf("set limit : %d", l)
+			log.Infof(c, "set limit : %d", l)
 			q = q.Limit(l)
 		}
 	}
@@ -154,7 +157,7 @@ func listEntity(w http.ResponseWriter, r *http.Request, c appengine.Context) {
 	var dst []datastore.PropertyList
 	keys, err := q.GetAll(c, &dst)
 	if err != nil {
-		c.Errorf("handler error: %#v", err)
+		log.Errorf(c, "handler error: %#v", err)
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
@@ -175,7 +178,7 @@ func listEntity(w http.ResponseWriter, r *http.Request, c appengine.Context) {
 	}
 }
 
-func getParam(w http.ResponseWriter, r *http.Request, c appengine.Context) {
+func getParam(w http.ResponseWriter, r *http.Request, c context.Context) {
 	p := &requestParam{
 		r.Host,
 		r.Method,
@@ -192,7 +195,7 @@ func getParam(w http.ResponseWriter, r *http.Request, c appengine.Context) {
 
 	json, err := json.Marshal(p)
 	if err != nil {
-		c.Errorf("handler error: %#v", err)
+		log.Errorf(c, "handler error: %#v", err)
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
@@ -201,14 +204,14 @@ func getParam(w http.ResponseWriter, r *http.Request, c appengine.Context) {
 	w.WriteHeader(http.StatusOK)
 	_, err = w.Write(json)
 	if err != nil {
-		c.Errorf("write response error: %#v", err)
+		log.Errorf(c, "write response error: %#v", err)
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
 }
 
-func writeStaticFile(w http.ResponseWriter, r *http.Request, c appengine.Context) {
-	log.Printf("%q\n", strings.Split(r.URL.Host, "."))
+func writeStaticFile(w http.ResponseWriter, r *http.Request, c context.Context) {
+	log.Infof(c, "%q\n", strings.Split(r.URL.Host, "."))
 	w.Header().Set("Cache-Control:public", "max-age=120")
 	sd := strings.Split(r.URL.Host, ".")[0]
 	if sd != "fuga" && sd != "hoge" {
@@ -223,7 +226,7 @@ func writeStaticFile(w http.ResponseWriter, r *http.Request, c appengine.Context
 	http.ServeFile(w, r, sd)
 }
 
-func handleTestCookie(w http.ResponseWriter, r *http.Request, c appengine.Context) {
+func handleTestCookie(w http.ResponseWriter, r *http.Request, c context.Context) {
 	switch r.Method {
 	default:
 		http.Error(w, "not support method.", http.StatusMethodNotAllowed)
@@ -234,7 +237,7 @@ func handleTestCookie(w http.ResponseWriter, r *http.Request, c appengine.Contex
 	}
 }
 
-func postTestCookie(w http.ResponseWriter, r *http.Request, c appengine.Context) {
+func postTestCookie(w http.ResponseWriter, r *http.Request, c context.Context) {
 	defer r.Body.Close()
 	var tc testCookie
 
@@ -250,7 +253,7 @@ func postTestCookie(w http.ResponseWriter, r *http.Request, c appengine.Context)
 	w.WriteHeader(http.StatusOK)
 }
 
-func getTestCookie(w http.ResponseWriter, r *http.Request, c appengine.Context) {
+func getTestCookie(w http.ResponseWriter, r *http.Request, c context.Context) {
 	tc, err := r.Cookie("testdomain")
 	if err != nil {
 		http.NotFound(w, r)
