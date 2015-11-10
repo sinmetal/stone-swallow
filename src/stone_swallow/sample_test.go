@@ -1,11 +1,11 @@
 package stone_swallow
 
 import (
-	"testing"
+	"github.com/favclip/testerator"
 
-	"appengine/aetest"
 	"net/http"
 	"net/http/httptest"
+	"testing"
 )
 
 func TextEmpty(t *testing.T) {
@@ -13,11 +13,8 @@ func TextEmpty(t *testing.T) {
 }
 
 func TestSave(t *testing.T) {
-	c, err := aetest.NewContext(nil)
-	if err != nil {
-		t.Fatal(err)
-	}
-	defer c.Close()
+	_, c, err := testerator.SpinUp()
+	defer testerator.SpinDown()
 
 	var h Hoge
 	h.Id = "gufu"
@@ -32,11 +29,8 @@ func TestSave(t *testing.T) {
 }
 
 func TestPutHoge(t *testing.T) {
-	c, err := aetest.NewContext(nil)
-	if err != nil {
-		t.Fatal(err)
-	}
-	defer c.Close()
+	_, c, err := testerator.SpinUp()
+	defer testerator.SpinDown()
 
 	req, err := http.NewRequest("POST", "/sample", nil)
 	if err != nil {
@@ -52,11 +46,8 @@ func TestPutHoge(t *testing.T) {
 }
 
 func TestHoge(t *testing.T) {
-	c, err := aetest.NewContext(nil)
-	if err != nil {
-		t.Fatal(err)
-	}
-	defer c.Close()
+	_, c, err := testerator.SpinUp()
+	defer testerator.SpinDown()
 
 	var h Hoge
 	h.Id = "gufu"
@@ -71,11 +62,8 @@ func TestHoge(t *testing.T) {
 }
 
 func TestGetAllHoge(t *testing.T) {
-	c, err := aetest.NewContext(nil)
-	if err != nil {
-		t.Fatal(err)
-	}
-	defer c.Close()
+	_, c, err := testerator.SpinUp()
+	defer testerator.SpinDown()
 
 	var h Hoge
 	h.Id = "gufu"

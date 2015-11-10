@@ -1,8 +1,11 @@
 package stone_swallow
 
 import (
-	"appengine"
-	"appengine/datastore"
+	"google.golang.org/appengine/datastore"
+	"google.golang.org/appengine/log"
+
+	"golang.org/x/net/context"
+
 	"bytes"
 	"encoding/json"
 	"net/http"
@@ -15,15 +18,15 @@ type Hoge struct {
 	Created time.Time `json:"created"`
 }
 
-func createHogeKey(c appengine.Context, id string) *datastore.Key {
+func createHogeKey(c context.Context, id string) *datastore.Key {
 	return datastore.NewKey(c, "Hoge", id, 0, nil)
 }
 
-func (f *Hoge) key(c appengine.Context) *datastore.Key {
+func (f *Hoge) key(c context.Context) *datastore.Key {
 	return createHogeKey(c, f.Id)
 }
 
-func (f *Hoge) save(c appengine.Context) (*Hoge, error) {
+func (f *Hoge) save(c context.Context) (*Hoge, error) {
 	f.Created = time.Now()
 	k, err := datastore.Put(c, f.key(c), f)
 	if err != nil {
@@ -33,14 +36,14 @@ func (f *Hoge) save(c appengine.Context) (*Hoge, error) {
 	return f, nil
 }
 
-func postLog(w http.ResponseWriter, r *http.Request, c appengine.Context) {
+func postLog(w http.ResponseWriter, r *http.Request, c context.Context) {
 	bufbody := new(bytes.Buffer)
 	bufbody.ReadFrom(r.Body)
 	body := bufbody.String()
-	c.Infof(body)
+	log.Infof(c, body)
 }
 
-func putHoge(w http.ResponseWriter, r *http.Request, c appengine.Context) {
+func putHoge(w http.ResponseWriter, r *http.Request, c context.Context) {
 	id := r.FormValue("id")
 
 	var h Hoge
@@ -48,20 +51,20 @@ func putHoge(w http.ResponseWriter, r *http.Request, c appengine.Context) {
 	h.Name = "グフ"
 	_, err := h.save(c)
 	if err != nil {
-		c.Errorf("hoge save error: %#v", err)
+		log.Errorf(c, "hoge save error: %#v", err)
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
 
 	err = json.NewEncoder(w).Encode(h)
 	if err != nil {
-		c.Errorf("hoge json encode error: %#v", err)
+		log.Errorf(c, "hoge json encode error: %#v", err)
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
 }
 
-func getHoge(c appengine.Context, key *datastore.Key) (Hoge, error) {
+func getHoge(c context.Context, key *datastore.Key) (Hoge, error) {
 	var hoge Hoge
 	err := datastore.Get(c, key, &hoge)
 	if err != nil {
@@ -70,7 +73,7 @@ func getHoge(c appengine.Context, key *datastore.Key) (Hoge, error) {
 	return hoge, nil
 }
 
-func getAllHoge(c appengine.Context) ([]Hoge, error) {
+func getAllHoge(c context.Context) ([]Hoge, error) {
 	hoges := []Hoge{}
 	_, err := datastore.NewQuery("Hoge").GetAll(c, &hoges)
 	if err != nil {
