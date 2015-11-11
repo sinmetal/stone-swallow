@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <title>Chart</title>
+    <script type="text/javascript" src="https://www.google.com/jsapi"></script>
+</head>
+<body>
+    <div id="chart_div"></div>
+    <div id="table_div">
+        <table>
+            <thead>
+                <tr>
+                    <th>Date</th>
+                    <th>app-engine</th>
+                    <th>cloud-storage</th>
+                    <th>bigquery</th>
+                    <th>cloud-dns</th>
+                    <th>cloud-pub/sub</th>
+                </tr>
+            </thead>
+            <tbody id="table_body">
+            </tbody>
+        </table>
+    </div>
+</body>
+<script>
+    google.load('visualization', '1', {packages: ['corechart', 'line']});
+    google.setOnLoadCallback(queryBilling);
+
+    function queryBilling() {
+        var oReq = new XMLHttpRequest();
+        oReq.onreadystatechange = function () {
+            if (oReq.readyState == 4 && oReq.status == 200) {
+                console.log(oReq.responseText);
+                var data = JSON.parse(oReq.responseText);
+                console.log(data);
+                var rows = [];
+                Object.keys(data).forEach(function(value, key, map) {
+                    var billing = data[value]
+                    var cost = billing["cost"];
+                    console.log(cost);
+                    var appengine = 0;
+                    var cloudstorage = 0;
+                    var bigquery = 0;
+                    var clouddns = 0;
+                    var pubsub = 0;
+                    if (cost["app-engine"]) {
+                        appengine = cost["app-engine"];
+                    }
+                    if (cost["cloud-storage"]) {
+                        cloudstorage = cost["cloud-storage"];
+                    }
+                    if (cost["bigquery"]) {
+                        bigquery = cost["bigquery"];
+                    }
+                    if (cost["cloud-dns"]) {
+                        clouddns = cost["cloud-dns"];
+                    }
+                    if (cost["pubsub"]) {
+                        pubsub = cost["pubsub"];
+                    }
+                    rows.push([value, appengine, cloudstorage, bigquery, clouddns, pubsub])
+                });
+                drawCurveTypes(rows);
+                addTable(rows);
+            }
+        };
+        oReq.open("GET", "/queryBilling");
+        oReq.send();
+    }
+
+    function drawCurveTypes(rows) {
+        console.log(rows);
+
+        var data = new google.visualization.DataTable();
+        data.addColumn('string', 'X');
+        data.addColumn('number', 'app-engine');
+        data.addColumn('number', 'cloud-storage');
+        data.addColumn('number', 'big-query');
+        data.addColumn('number', 'cloud-dns');
+        data.addColumn('number', 'cloud-pub/sub');
+
+        data.addRows(rows);
+
+        var options = {
+            hAxis: {
+                title: 'Date'
+            },
+            vAxis: {
+                title: 'Cost($)'
+            },
+            series: {
+                1: {curveType: 'function'}
+            }
+        };
+
+        var chart = new google.visualization.LineChart(document.getElementById('chart_div'));
+        chart.draw(data, options);
+    }
+
+    function addTable(rows) {
+        var tbdy = document.getElementById("table_body");
+        for (var i = 0; i < rows.length; i++) {
+            var tr = document.createElement('tr');
+            for (var j = 0; j < 5; j++) {
+                var td = document.createElement('td');
+                td.appendChild(document.createTextNode(rows[i][j]))
+                tr.appendChild(td)
+            }
+            tbdy.appendChild(tr);
+        }
+    }
+</script>
+</html>
