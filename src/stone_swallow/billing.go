@@ -23,8 +23,6 @@ import (
 	"google.golang.org/cloud/storage"
 )
 
-var bucket = "gcp-ug-billing"
-
 type demo struct {
 	c   context.Context
 	w   http.ResponseWriter
@@ -122,6 +120,7 @@ func queryBilling(c context.Context) (map[string]BillingSum, error) {
 }
 
 func importBilling(w http.ResponseWriter, r *http.Request, c context.Context) {
+	bucket := r.FormValue("bucket")
 	fileName := r.FormValue("fileName")
 	if len(fileName) < 1 {
 		http.Error(w, "required fileName", http.StatusBadRequest)
@@ -144,7 +143,7 @@ func importBilling(w http.ResponseWriter, r *http.Request, c context.Context) {
 		w:   w,
 		ctx: ctx,
 	}
-	billings, err := d.readFile(fileName)
+	billings, err := d.readFile(bucket, fileName)
 	if err != nil {
 		log.Errorf(ctx, "read file error = %s", err.Error())
 		return
@@ -196,7 +195,7 @@ func (d *demo) errorf(format string, args ...interface{}) {
 }
 
 // readFile reads the named file in Google Cloud Storage.
-func (d *demo) readFile(fileName string) ([]BillingJson, error) {
+func (d *demo) readFile(bucket string, fileName string) ([]BillingJson, error) {
 	io.WriteString(d.w, "\nAbbreviated file content (first line and last 1K):\n")
 
 	rc, err := storage.NewReader(d.ctx, bucket, fileName)
