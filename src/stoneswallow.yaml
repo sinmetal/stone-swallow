@@ -11,6 +11,9 @@ handlers:
 - url: /
   static_files: index.html
   upload: index.html
+- url: /chart
+  static_files: chart.html
+  upload: chart.html
 - url: /script
   static_dir: script
 - url: /html
