@@ -62,7 +62,8 @@ func handler(w http.ResponseWriter, r *http.Request) {
 		getParam(w, r, c)
 	case "/importBilling":
 		importBilling(w, r, c)
-
+	case "/queryBilling":
+		listBilling4chart(w, r, c)
 	case "/testcookie":
 		handleTestCookie(w, r, c)
 	case "/static":

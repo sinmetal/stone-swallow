@@ -6,6 +6,8 @@ import (
 	"io"
 	"io/ioutil"
 	"net/http"
+	"strconv"
+	"strings"
 	"time"
 
 	"golang.org/x/net/context"
@@ -19,7 +21,6 @@ import (
 	"google.golang.org/appengine/urlfetch"
 	"google.golang.org/cloud"
 	"google.golang.org/cloud/storage"
-	"strconv"
 )
 
 var bucket = "gcp-ug-billing"
@@ -61,7 +62,72 @@ type Measurement struct {
 	Unit          string `json:"unit"`
 }
 
+type BillingSum struct {
+	StartTime time.Time          `json:"startTime"`
+	Cost      map[string]float64 `json:"cost"`
+}
+
+func listBilling4chart(w http.ResponseWriter, r *http.Request, c context.Context) {
+	bMap, err := queryBilling(c)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	err = json.NewEncoder(w).Encode(bMap)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+	w.Header().Add("Content-Type", "application/json;utf-8")
+	w.WriteHeader(http.StatusOK)
+}
+
+func queryBilling(c context.Context) (map[string]BillingSum, error) {
+	d := time.Now().Add(-90 * 24 * time.Hour)
+
+	bMap := make(map[string]BillingSum)
+
+	q := datastore.NewQuery("Billing").Filter("StartTime >= ", d).Order("-StartTime")
+	t := q.Run(c)
+	for {
+		var bill Billing
+		_, err := t.Next(&bill)
+		if err == datastore.Done {
+			break
+		}
+		if err != nil {
+			log.Errorf(c, "getching nexe Billing %v", err)
+			return nil, err
+		}
+
+		idArray := strings.Split(bill.LineItemID, "/")
+		serviceID := idArray[2]
+		if val, ok := bMap[bill.StartTime.String()]; ok {
+			if costVal, ok := val.Cost[serviceID]; ok {
+				val.Cost[serviceID] = costVal + bill.Cost
+			} else {
+				val.Cost[serviceID] = bill.Cost
+			}
+		} else {
+			serviceMap := make(map[string]float64)
+			serviceMap[serviceID] = bill.Cost
+			bMap[bill.StartTime.String()] = BillingSum{
+				StartTime: bill.StartTime,
+				Cost:      serviceMap,
+			}
+		}
+	}
+	return bMap, nil
+}
+
 func importBilling(w http.ResponseWriter, r *http.Request, c context.Context) {
+	fileName := r.FormValue("fileName")
+	if len(fileName) < 1 {
+		http.Error(w, "required fileName", http.StatusBadRequest)
+		return
+	}
+
 	c, cancel := context.WithDeadline(c, time.Now().Add(30*time.Second))
 	defer cancel()
 
@@ -78,7 +144,7 @@ func importBilling(w http.ResponseWriter, r *http.Request, c context.Context) {
 		w:   w,
 		ctx: ctx,
 	}
-	billings, err := d.readFile("billing-2015-11-08.json")
+	billings, err := d.readFile(fileName)
 	if err != nil {
 		log.Errorf(ctx, "read file error = %s", err.Error())
 		return
