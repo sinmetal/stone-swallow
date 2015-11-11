@@ -60,6 +60,9 @@ func handler(w http.ResponseWriter, r *http.Request) {
 		postLog(w, r, c)
 	case "/param":
 		getParam(w, r, c)
+	case "/importBilling":
+		importBilling(w, r, c)
+
 	case "/testcookie":
 		handleTestCookie(w, r, c)
 	case "/static":
