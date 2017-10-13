@@ -1,5 +1,5 @@
 application: stone-swallow
-module: default
+module: stone-swallow
 version: 20150202b
 automatic_scaling:
 runtime: go
@@ -16,4 +16,5 @@ handlers:
 - url: /lib
   static_dir: lib
 - url: /.*
+  login: admin
   script: _go_app

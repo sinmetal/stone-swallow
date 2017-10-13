@@ -1,8 +1,0 @@
-queue:
-- name: billingimport
-  rate: 1/s
-  bucket_size: 1
-  target: stoneswallow
-  max_concurrent_requests: 1
-  retry_parameters:
-      min_backoff_seconds: 10
