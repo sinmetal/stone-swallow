@@ -1,18 +1,19 @@
 package stone_swallow
 
 import (
-	"google.golang.org/appengine"
-	"google.golang.org/appengine/datastore"
-	"google.golang.org/appengine/log"
-
-	"golang.org/x/net/context"
-
 	"encoding/json"
 	"fmt"
 	"net/http"
 	"runtime"
 	"strconv"
 	"strings"
+
+	"golang.org/x/net/context"
+
+	"google.golang.org/appengine"
+	"google.golang.org/appengine/datastore"
+	"google.golang.org/appengine/log"
+	"google.golang.org/appengine/user"
 )
 
 type runtimeEnv struct {
@@ -45,6 +46,12 @@ func init() {
 
 func handler(w http.ResponseWriter, r *http.Request) {
 	c := appengine.NewContext(r)
+
+	u := user.Current(c)
+	if u != nil {
+		log.Infof(c, "userEmail=%s", u.Email)
+	}
+
 	switch r.URL.Path {
 	default:
 		http.Error(w, "not found.", http.StatusNotFound)

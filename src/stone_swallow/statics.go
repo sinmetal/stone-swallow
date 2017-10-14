@@ -1,13 +1,13 @@
 package stone_swallow
 
 import (
-	"net/http"
 	"encoding/json"
+	"net/http"
 
 	"golang.org/x/net/context"
 
-	"google.golang.org/appengine/taskqueue"
 	"google.golang.org/appengine/log"
+	"google.golang.org/appengine/taskqueue"
 )
 
 func getStatics(ctx context.Context, w http.ResponseWriter, r *http.Request) {
